@@ -667,7 +667,31 @@ MonoBehaviour:
   _tireGripFactor: 0.8
   _tireMass: 20
   _maxSteerAngle: 30
-  _accelerationForce: 5000
+  _topSpeedMS: 30
+  _powerCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -0.0036229491
+      value: 1000.09937
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1.119375
+      value: 1001.86896
+      inSlope: -0.7524451
+      outSlope: -0.7524451
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.10094476
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   _brakeForce: 8000
 --- !u!54 &2032168588
 Rigidbody:

@@ -19,7 +19,8 @@ public class CarController : MonoBehaviour
     [SerializeField] private float _maxSteerAngle = 30f;
 
     [Header("Acceleration Settings")]
-    [SerializeField] private float _accelerationForce = 5000f;
+    [SerializeField] private float _topSpeedMS = 30f;
+    [SerializeField] private AnimationCurve _powerCurve;
     [SerializeField] private float _brakeForce = 8000f;
 
     private float _steerInput;
@@ -115,15 +116,39 @@ public class CarController : MonoBehaviour
 
     private void Acceleration()
     {
-        // Apply acceleration force to all tires (or just rear tires for RWD)
         foreach (Transform tireTransform in _tireTransforms)
         {
             RaycastHit hit;
             if (Physics.Raycast(tireTransform.position, -tireTransform.up, out hit, _suspensionRestDist + 1f, _drivableLayer))
             {
-                // Apply force in the tire's forward direction
-                float forceToApply = _accelerationInput * _accelerationForce;
-                _carRigidBody.AddForceAtPosition(tireTransform.forward * forceToApply, tireTransform.position);
+                // World-space direction of the acceleration/braking force
+                Vector3 accelDir = tireTransform.forward;
+
+                // Acceleration torque
+                if (_accelerationInput > 0.0f)
+                {
+                    // Forward speed of the car (in the direction of driving)
+                    float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.linearVelocity);
+
+                    // Normalized car speed (0 to 1)
+                    float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
+
+                    // Available torque from the power curve
+                    float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * _accelerationInput;
+
+                    _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
+
+                    // DEBUG
+                    if (tireTransform == _tireTransforms[0])
+                    {
+                        Debug.Log($"normalizedSpeed: {normalizedSpeed:F3}, powerCurveValue: {_powerCurve.Evaluate(normalizedSpeed):F3}, accelInput: {_accelerationInput:F3}, availableTorque: {availableTorque:F3}");
+                    }
+                }
+                // Braking
+                else if (_accelerationInput < 0.0f)
+                {
+                    _carRigidBody.AddForceAtPosition(accelDir * _accelerationInput * _brakeForce, tireTransform.position);
+                }
             }
         }
     }
