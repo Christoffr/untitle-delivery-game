@@ -140,12 +140,6 @@ public class CarController : MonoBehaviour
 
                         _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
                     }
-
-                    // DEBUG
-                    if (tireTransform == _tireTransforms[0])
-                    {
-                        Debug.Log($"Speed : {carSpeed}");
-                    }
                 }
                 // Braking
                 else if (_accelerationInput < 0.0f)
