@@ -130,18 +130,21 @@ public class CarController : MonoBehaviour
                     // Forward speed of the car (in the direction of driving)
                     float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.linearVelocity);
 
-                    // Normalized car speed (0 to 1)
-                    float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
+                    if (carSpeed < _topSpeedMS)
+                    {
+                        // Normalized car speed (0 to 1)
+                        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
 
-                    // Available torque from the power curve
-                    float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * _accelerationInput;
+                        // Available torque from the power curve
+                        float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * _accelerationInput;
 
-                    _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
+                        _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
+                    }
 
                     // DEBUG
                     if (tireTransform == _tireTransforms[0])
                     {
-                        Debug.Log($"normalizedSpeed: {normalizedSpeed:F3}, powerCurveValue: {_powerCurve.Evaluate(normalizedSpeed):F3}, accelInput: {_accelerationInput:F3}, availableTorque: {availableTorque:F3}");
+                        Debug.Log($"Speed : {carSpeed}");
                     }
                 }
                 // Braking
