@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3029226717906465939}
   - component: {fileID: 6527190867127457494}
   - component: {fileID: 4214813365623871195}
+  - component: {fileID: 5875216328128872363}
   m_Layer: 0
   m_Name: Car
   m_TagString: Player
@@ -162,9 +163,22 @@ MonoBehaviour:
     start: {fileID: 0}
     end: {fileID: 0}
     reward: 0
-  _boxPrefab: {fileID: 0}
-  _boxMount: {fileID: 0}
-  _carRigidbody: {fileID: 0}
+  _boxHandler: {fileID: 5875216328128872363}
+  _carRigidbody: {fileID: 300564100664049983}
+--- !u!114 &5875216328128872363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665745441142496052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca09edbf561884a4a8df830cc6ec9dd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _boxPrefab: {fileID: 3518007739999615724, guid: 75d6dde6687120049a1038e5aafbaa5d, type: 3}
+  _boxMount: {fileID: 3649739033028340984}
 --- !u!1 &8916540738302000797
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,11 +373,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4793160d8cd6d7b468dab8f53df04178, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3
+      value: 3.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4793160d8cd6d7b468dab8f53df04178, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4793160d8cd6d7b468dab8f53df04178, type: 3}
       propertyPath: m_LocalRotation.w

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,14 +12,14 @@ public class DeliveryManager : MonoBehaviour
     private List<Delivery> _availableDeliveries = new();
     [SerializeField]
     private Delivery _currentDelivery;
-    [SerializeField] private GameObject _boxPrefab;
-    [SerializeField] private Transform _boxMount;
+    [SerializeField] private BoxHandler _boxHandler;
     [SerializeField] private Rigidbody _carRigidbody;
-    private GameObject _boxInstance;
 
     private void Start()
     {
-        _carRigidbody = GetComponent<Rigidbody>();
+        _boxHandler.Init(_carRigidbody);
+        _boxHandler.OnBoxDropped += HandleBoxDropped;
+        _boxHandler.OnBoxDestroid += HandleBoxDestroid;
 
         foreach (var point in _deliverypoints)
         {
@@ -50,17 +51,34 @@ public class DeliveryManager : MonoBehaviour
             _currentDelivery.End.SetVisual(true);
             _arrow.LookAtTarget = _currentDelivery.End.transform;
             // Box appear
-            SpawnBox();
+            _boxHandler.SpawnBox(this);
         }
         // Ended the delivery
-        else if (deliveryPoint == _currentDelivery.End && _boxInstance != null)
+        else if (deliveryPoint == _currentDelivery.End && _boxHandler.HasBoxAttached)
         {
             _currentDelivery.End.SetVisual(false);
             _currentDelivery = null;
             _arrow.LookAtTarget = null;
             // Box diappear
-            RemoveBox();
+            _boxHandler.RemoveBox();
         }
+    }
+
+    public void ReattachBox(Box box)
+    {
+        _boxHandler.ReattachBox(box);
+        _arrow.LookAtTarget = _currentDelivery.End.transform;
+    }
+
+    private void HandleBoxDropped(Box box)
+    {
+        _arrow.LookAtTarget = box.transform;
+    }
+
+    private void HandleBoxDestroid(Box box)
+    {
+        _currentDelivery.End.SetVisual(false);
+        _currentDelivery = null;
 
     }
 
@@ -87,28 +105,5 @@ public class DeliveryManager : MonoBehaviour
         _currentDelivery = delivery;
         _currentDelivery.Start.SetVisual(true);
         _arrow.LookAtTarget = _currentDelivery.Start.transform;
-    }
-
-    private void SpawnBox()
-    {
-        if (_boxInstance != null) return;
-
-        _boxInstance = Instantiate(_boxPrefab, _boxMount.position, _boxMount.rotation);
-
-        Rigidbody boxRb = _boxInstance.GetComponent<Rigidbody>();
-
-        FixedJoint joint = _boxInstance.GetComponent<FixedJoint>();
-        joint.connectedBody = _carRigidbody;
-        joint.breakForce = 600f;
-        joint.breakTorque = 600f;
-    }
-
-    private void RemoveBox()
-    {
-        if (_boxInstance != null)
-        {
-            Destroy(_boxInstance);
-            _boxInstance = null;
-        }
     }
 }
