@@ -20,6 +20,6 @@ public class Delivery
 
     private int CalculateReward(float distance)
     {
-        return Mathf.RoundToInt((distance / 1000) * 10);
+        return Mathf.RoundToInt((distance / 100) * 10);
     }
 }
