@@ -136,7 +136,7 @@ public class CarController : MonoBehaviour
                         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
 
                         // Available torque from the power curve
-                        float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * _accelerationInput;
+                        float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * 5000f * _accelerationInput;
 
                         _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
                     }

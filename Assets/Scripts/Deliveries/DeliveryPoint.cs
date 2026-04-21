@@ -4,22 +4,28 @@ using UnityEngine;
 [System.Serializable]
 public class DeliveryPoint : MonoBehaviour
 {
-    [SerializeField] private string _name;
-    [SerializeField] private GameObject _visual;
 
-    public Action<DeliveryPoint> OnPlayerEnter;
-    public string Name { get { return _name; } }
+    [SerializeField]
+    private string _locationName;
+    [SerializeField]
+    private GameObject _marker;
 
-    public void SetVisual(bool visualBool)
+    public string Location => _locationName;
+    public Action<DeliveryPoint> OnPlayerArrived;
+
+    // This method can be called to show or hide the marker for this delivery point
+    public void SetMarker(bool active)
     {
-        _visual.SetActive(visualBool);
+        _marker.SetActive(active);
     }
 
-    private void OnTriggerEnter(Collider collision)
+    public void OnTriggerEnter(Collider other)
     {
-        if (collision.transform.CompareTag("Player"))
+        // Check if the player has entered the delivery point
+        if (other.CompareTag("Player"))
         {
-            OnPlayerEnter?.Invoke(this);
+            // Notify the Player that they have reached the delivery point
+            OnPlayerArrived?.Invoke(this);
         }
     }
 }

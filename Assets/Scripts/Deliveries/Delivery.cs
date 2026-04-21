@@ -3,18 +3,23 @@ using UnityEngine;
 [System.Serializable]
 public class Delivery
 {
-    [SerializeField] private DeliveryPoint start;
-    [SerializeField] private DeliveryPoint end;
-    [SerializeField] private int reward;
+     [SerializeField] private DeliveryPoint _start;
+    [SerializeField] private DeliveryPoint _end;
 
-    public DeliveryPoint Start => start;
-    public DeliveryPoint End => end;
-    public int Reward => reward;
+    public DeliveryPoint StartPoint => _start;
+    public DeliveryPoint EndPoint => _end;
+    public int Reward { get; private set; }
 
-    public Delivery(DeliveryPoint start, DeliveryPoint end, int reward)
+    public Delivery(DeliveryPoint start, DeliveryPoint end)
     {
-        this.start = start;
-        this.end = end;
-        this.reward = reward;
+        _start = start;
+        _end = end;
+        float distance = Vector3.Distance(start.transform.position, end.transform.position);
+        Reward = CalculateReward(distance);
+    }
+
+    private int CalculateReward(float distance)
+    {
+        return Mathf.RoundToInt((distance / 1000) * 10);
     }
 }
