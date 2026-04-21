@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 3500018997274117879}
   - component: {fileID: 2787922122103702443}
   - component: {fileID: 8133857408932572784}
+  - component: {fileID: 1874003372315362033}
   m_Layer: 0
   m_Name: Car
   m_TagString: Player
@@ -210,7 +211,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5231f8e8b4565fa44afbe4d632e3ef2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _perfectDeliveryMultiplier: 1.5
+  _dropPenalty: 0.1
   _damageRewardMultiplier: 0.5
+  _destructionPenalty: 50
+--- !u!114 &1874003372315362033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665745441142496052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6159b624d2dd134db96dcf54d243c6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _money: 0
+  score: {fileID: 8133857408932572784}
 --- !u!1 &8916540738302000797
 GameObject:
   m_ObjectHideFlags: 0
