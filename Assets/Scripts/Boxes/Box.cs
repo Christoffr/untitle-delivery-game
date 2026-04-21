@@ -1,65 +1,58 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 public class Box : MonoBehaviour
 {
-    public Action<Box> OnDropped;
-    public Action<Box> OnDestroied;
-    public bool IsAttached { get; private set; } = true;
-    
-    [SerializeField] private float _pickupDelay = 1f;
-    [SerializeField] private float _damageThreshold = 5f;
+    [SerializeField]
+    private float _maxHealth = 100f;
+    [SerializeField]
+    private float _damageThreshold = 5f;
+    [SerializeField]
+    private float _damageMultiplier = 0.5f;
 
-    private int _health = 3;
-
+    private DeliveryCargo _deliveryCargo;
     private float _dropTime;
-    private DeliveryManager _deliveryManager;
+    private float _pickupDelay = 1.5f;
+    private float _currentHealth;
 
-    public void Init(DeliveryManager deliveryManager)
-    {
-        _deliveryManager = deliveryManager;
-    }
+    public Action<Box> OnDropped;
+    public Action<Box> OnDestroyed;
 
-    public void SetAttached()
+    public float HealthPercent { get { return _currentHealth / _maxHealth; } }
+
+    public void Initialize(DeliveryCargo deliveryCargo)
     {
-        IsAttached = true;
+        _deliveryCargo = deliveryCargo;
+        _currentHealth = _maxHealth;
+        Debug.Log($"Box initialized with {_currentHealth} health.");
     }
 
     private void OnJointBreak(float breakForce)
     {
-        IsAttached = false;
         _dropTime = Time.time;
         OnDropped?.Invoke(this);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (IsAttached) return;
-
-        bool isPlayer = collision.collider.CompareTag("Player");
-        float impactForce = collision.relativeVelocity.magnitude;
-
-        if (!isPlayer && impactForce > _damageThreshold)
+        if (collision.collider.CompareTag("Player") && Time.time - _dropTime > _pickupDelay)
         {
-            int damage = Mathf.FloorToInt(impactForce / 5f);
-            TakeDamage(damage);
+            _deliveryCargo.Reattach();
+            return;
         }
 
-        if (isPlayer && Time.time - _dropTime >= _pickupDelay)
-        {
-            _deliveryManager.ReattachBox(this);
-        }
+        float impact = collision.impulse.magnitude;
+        if (impact > _damageThreshold)
+            TakeDamage(impact * _damageMultiplier);
     }
 
-    private void TakeDamage(int amount)
+    private void TakeDamage(float damage)
     {
-        _health -= amount;
+        _currentHealth = Mathf.Max(0, _currentHealth - damage);
 
-        if (_health <= 0)
-        {
-            Destroy(gameObject);
-            OnDestroied?.Invoke(this);
-        }
+        DeliveryEvents.OnDamaged?.Invoke(this, _currentHealth);
+
+        if (_currentHealth <= 0)
+            OnDestroyed?.Invoke(this);
     }
-
 }
