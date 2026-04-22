@@ -111,8 +111,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   _suspensionRestDist: 0.7
-  _springStrength: 30000
-  _springDamper: 2000
+  _springStrength: 15000
+  _springDamper: 500
   _tireGripFactor: 0.8
   _tireMass: 20
   _maxSteerAngle: 30
@@ -155,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxDeliveries: 3
+  _deliveryGenerationInterval: 30
   _deliveryPoints: []
   _availableDeliveries: []
 --- !u!114 &6758325024788852290
