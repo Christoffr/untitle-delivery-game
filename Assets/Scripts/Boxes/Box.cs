@@ -24,7 +24,6 @@ public class Box : MonoBehaviour
     {
         _deliveryCargo = deliveryCargo;
         _currentHealth = _maxHealth;
-        Debug.Log($"Box initialized with {_currentHealth} health.");
     }
 
     private void OnJointBreak(float breakForce)

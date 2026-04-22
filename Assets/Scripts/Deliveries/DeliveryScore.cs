@@ -70,8 +70,6 @@ public class DeliveryScore : MonoBehaviour
             finalReward: finalReward
         ));
 
-        Debug.Log($"Delivery Completed: Base={baseReward}, DamagePenalty={penalty}, Modifier={modifier:F2}, Final={finalReward}");
-
         _currentDelivery = null;
     }
 
@@ -84,9 +82,6 @@ public class DeliveryScore : MonoBehaviour
             modifier: 0,
             finalReward: -_destructionPenalty
         ));
-
-        Debug.Log($"Delivery Failed: Base={delivery.Reward}, DamagePenalty={delivery.Reward}, Modifier=0, Final={-_destructionPenalty}");
-
         _currentDelivery = null;
     }
 
