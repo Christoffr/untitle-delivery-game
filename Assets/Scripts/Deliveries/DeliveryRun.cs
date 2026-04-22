@@ -34,25 +34,18 @@ public class DeliveryRun : MonoBehaviour
         if (_delivery != null) ClearDelivery();
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.E) && _state == DeliveryState.Idle)
-            TryAcceptDelivery();
-    }
-
     private void SetState(DeliveryState newState)
     {
         _state = newState;
         DeliveryEvents.OnDeliveryStateChanged?.Invoke(newState);
     }
 
-    private void TryAcceptDelivery()
+    public void AcceptDelivery(Delivery delivery)
     {
-        if (_deliveryBoard.TryAcceptDelivery(out var delivery))
-        {
-            if (_delivery != null) ClearDelivery();
-            SetDelivery(delivery);
-        }
+        if (_state != DeliveryState.Idle) return;
+        if (!_deliveryBoard.TryAcceptDelivery(delivery)) return;
+        if (_delivery != null) ClearDelivery();
+        SetDelivery(delivery);
     }
 
     private void SetDelivery(Delivery delivery)
