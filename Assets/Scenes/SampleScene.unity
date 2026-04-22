@@ -47122,9 +47122,21 @@ PrefabInstance:
       propertyPath: '_deliveryPoints.Array.data[1]'
       value: 
       objectReference: {fileID: 1504136542}
+    - target: {fileID: 300564100664049983, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: m_Mass
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 665745441142496052, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
       propertyPath: m_Name
       value: Car
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _enginePower
+      value: 5000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _airLiftForce
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
       propertyPath: _drivableLayer.m_Bits
@@ -47164,11 +47176,31 @@ PrefabInstance:
       objectReference: {fileID: 1384965427}
     - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
       propertyPath: _powerCurve.m_Curve.Array.data[0].time
-      value: -0.0016484642
+      value: 0.0016611295
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _powerCurve.m_Curve.Array.data[1].time
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
       propertyPath: _powerCurve.m_Curve.Array.data[0].value
-      value: 0.1003418
+      value: 0.100328945
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _powerCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _powerCurve.m_Curve.Array.data[1].inSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _powerCurve.m_Curve.Array.data[1].inWeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1183435944116509573, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
+      propertyPath: _powerCurve.m_Curve.Array.data[1].outSlope
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3649739033028340984, guid: 9e4d61965e2913b4f8c878488c1572af, type: 3}
       propertyPath: m_LocalPosition.y

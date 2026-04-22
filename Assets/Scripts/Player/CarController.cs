@@ -2,6 +2,14 @@ using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
+    // Struct for caching wheel hit information to avoid redundant raycasts in each method
+    private struct WheelHit
+    {
+        public Transform transform;
+        public bool isGrounded;
+        public RaycastHit hit;
+    }
+
     [Header("References")]
     [SerializeField] private Rigidbody _carRigidBody;
     [SerializeField] private Transform[] _tireTransforms;
@@ -10,8 +18,8 @@ public class CarController : MonoBehaviour
 
     [Header("Suspension Settings")]
     [SerializeField] private float _suspensionRestDist = 0.7f;
-    [SerializeField] private float _springStrength = 30000f;
-    [SerializeField] private float _springDamper = 2000f;
+    [SerializeField] private float _springStrength = 15000f;
+    [SerializeField] private float _springDamper = 500f;
 
     [Header("Steering Settings")]
     [SerializeField] private float _tireGripFactor = 0.8f;
@@ -22,14 +30,17 @@ public class CarController : MonoBehaviour
     [SerializeField] private float _topSpeedMS = 30f;
     [SerializeField] private AnimationCurve _powerCurve;
     [SerializeField] private float _brakeForce = 8000f;
+    [SerializeField] private float _enginePower = 5000f;
+
+    [Header("Air Control")]
+    [SerializeField] private float _airTorque = 100f;
+    [SerializeField] private float _airLiftForce = 10f;
+    [SerializeField] private float _gravityModifier = 0.7f;
 
     private float _steerInput;
     private float _accelerationInput;
-
-    private void Start()
-    {
-        _carRigidBody = GetComponent<Rigidbody>();
-    }
+    private bool _isGrounded = false;
+    private WheelHit[] _wheelHits;
 
     private void Update()
     {
@@ -39,113 +50,111 @@ public class CarController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        CacheWheelHits();
+
         Suspension();
         Steering();
         Acceleration();
         ApplySteeringRotation();
+
+        if (!_isGrounded)
+        {
+            Aircontrol();
+        }
     }
 
     private void Suspension()
     {
-        foreach (Transform tireTransform in _tireTransforms)
+        foreach (var wheel in _wheelHits)
         {
-            RaycastHit hit;
+            if (!wheel.isGrounded) continue;
 
-            if (Physics.Raycast(tireTransform.position, -tireTransform.up, out hit, _suspensionRestDist + 1f, _drivableLayer))
-            {
-                // World-space direction of the spring force
-                Vector3 springDir = tireTransform.up;
+            // World-space direction of the spring force
+            Vector3 springDir = wheel.transform.up;
 
-                // World-space velocity of this tire
-                Vector3 tireWorldVel = _carRigidBody.GetPointVelocity(tireTransform.position);
+            // World-space velocity of this tire
+            Vector3 tireWorldVel = _carRigidBody.GetPointVelocity(wheel.transform.position);
 
-                // Calculate offset from the raycast
-                float offset = _suspensionRestDist - hit.distance;
+            // Calculate offset from the raycast
+            float offset = _suspensionRestDist - wheel.hit.distance;
 
-                // Calculate velocity along the spring direction
-                float vel = Vector3.Dot(springDir, tireWorldVel);
+            // Calculate velocity along the spring direction
+            float vel = Vector3.Dot(springDir, tireWorldVel);
 
-                // Calculate the magnitude of the dampened spring force
-                float force = (offset * _springStrength) - (vel * _springDamper);
+            // Calculate the magnitude of the dampened spring force
+            float force = (offset * _springStrength) - (vel * _springDamper);
+            // Prevent spring force from going negative (which would cause the spring to "flip" and start pulling instead of pushing)
+            force = Mathf.Max(0, force);
 
-                // Apply the force at the location of this tire
-                _carRigidBody.AddForceAtPosition(springDir * force, tireTransform.position);
+            // Apply the force at the location of this tire
+            _carRigidBody.AddForceAtPosition(springDir * force, wheel.transform.position);
 
-                Debug.DrawLine(tireTransform.position, hit.point, Color.red);
-            }
-            else
-            {
-                Debug.DrawLine(tireTransform.position, tireTransform.position - tireTransform.up * (_suspensionRestDist + 1f), Color.green);
-            }
+            Debug.DrawLine(wheel.transform.position, wheel.hit.point, Color.red);
         }
     }
 
     private void Steering()
     {
-        foreach (Transform tireTransform in _tireTransforms)
+        foreach (var wheel in _wheelHits)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(tireTransform.position, -tireTransform.up, out hit, _suspensionRestDist + 1f, _drivableLayer))
-            {
-                // World-space direction of the steering force (tire's right direction)
-                Vector3 steeringDir = tireTransform.right;
+            if (!wheel.isGrounded) continue;
 
-                // World-space velocity of the tire
-                Vector3 tireWorldVel = _carRigidBody.GetPointVelocity(tireTransform.position);
+            // World-space direction of the steering force (tire's right direction)
+            Vector3 steeringDir = wheel.transform.right;
 
-                // What is the tire's velocity in the steering direction?
-                // steeringDir is a unit vector, so this returns the magnitude of tireWorldVel as projected onto steeringDir
-                float steeringVel = Vector3.Dot(steeringDir, tireWorldVel);
+            // World-space velocity of the tire
+            Vector3 tireWorldVel = _carRigidBody.GetPointVelocity(wheel.transform.position);
 
-                // The change in velocity that we're looking for is -steeringVel * gripFactor
-                // gripFactor is in range 0-1, where 0 means no grip, 1 means full grip
-                float desiredVelChange = -steeringVel * _tireGripFactor;
+            // What is the tire's velocity in the steering direction?
+            // steeringDir is a unit vector, so this returns the magnitude of tireWorldVel as projected onto steeringDir
+            float steeringVel = Vector3.Dot(steeringDir, tireWorldVel);
 
-                // Turn change in velocity into an acceleration (acceleration = change in vel / time)
-                // This will produce the acceleration necessary to change the velocity by desiredVelChange in 1 physics step
-                float desiredAccel = desiredVelChange / Time.fixedDeltaTime;
+            // The change in velocity that we're looking for is -steeringVel * gripFactor
+            // gripFactor is in range 0-1, where 0 means no grip, 1 means full grip
+            float desiredVelChange = -steeringVel * _tireGripFactor;
 
-                // Force = Mass * Acceleration, so multiply by the mass of the tire and apply as a force!
-                _carRigidBody.AddForceAtPosition(steeringDir * _tireMass * desiredAccel, tireTransform.position);
+            // Turn change in velocity into an acceleration (acceleration = change in vel / time)
+            // This will produce the acceleration necessary to change the velocity by desiredVelChange in 1 physics step
+            float desiredAccel = desiredVelChange / Time.fixedDeltaTime;
 
-                // Debug visualization
-                Debug.DrawLine(tireTransform.position, tireTransform.position + steeringDir * steeringVel, Color.blue);
-            }
+            // Force = Mass * Acceleration, so multiply by the mass of the tire and apply as a force!
+            _carRigidBody.AddForceAtPosition(steeringDir * _tireMass * desiredAccel, wheel.transform.position);
+
+            // Debug visualization
+            Debug.DrawLine(wheel.transform.position, wheel.transform.position + steeringDir * steeringVel, Color.blue);
         }
     }
 
     private void Acceleration()
     {
-        foreach (Transform tireTransform in _tireTransforms)
+        foreach (var wheel in _wheelHits)
         {
-            RaycastHit hit;
-            if (Physics.Raycast(tireTransform.position, -tireTransform.up, out hit, _suspensionRestDist + 1f, _drivableLayer))
+            if (!wheel.isGrounded) continue;
+            
+            // World-space direction of the acceleration/braking force
+            Vector3 accelDir = wheel.transform.forward;
+
+            // Acceleration torque
+            if (_accelerationInput > 0.0f)
             {
-                // World-space direction of the acceleration/braking force
-                Vector3 accelDir = tireTransform.forward;
+                // Forward speed of the car (in the direction of driving)
+                float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.linearVelocity);
 
-                // Acceleration torque
-                if (_accelerationInput > 0.0f)
+                if (carSpeed < _topSpeedMS)
                 {
-                    // Forward speed of the car (in the direction of driving)
-                    float carSpeed = Vector3.Dot(transform.forward, _carRigidBody.linearVelocity);
+                    // Normalized car speed (0 to 1)
+                    float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
 
-                    if (carSpeed < _topSpeedMS)
-                    {
-                        // Normalized car speed (0 to 1)
-                        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / _topSpeedMS);
+                    // Available torque from the power curve
+                    float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * _enginePower * _accelerationInput;
 
-                        // Available torque from the power curve
-                        float availableTorque = _powerCurve.Evaluate(normalizedSpeed) * 5000f * _accelerationInput;
-
-                        _carRigidBody.AddForceAtPosition(accelDir * availableTorque, tireTransform.position);
-                    }
+                    _carRigidBody.AddForceAtPosition(accelDir * availableTorque, wheel.transform.position);
                 }
-                // Braking
-                else if (_accelerationInput < 0.0f)
-                {
-                    _carRigidBody.AddForceAtPosition(accelDir * _accelerationInput * _brakeForce, tireTransform.position);
-                }
+            }
+            // Braking
+            else if (_accelerationInput < 0.0f)
+            {
+                _carRigidBody.AddForceAtPosition(accelDir * _accelerationInput * _brakeForce, wheel.transform.position);
             }
         }
     }
@@ -158,7 +167,36 @@ public class CarController : MonoBehaviour
         foreach (Transform frontTire in _frontTireTransforms)
         {
             // Smoothly rotate the tire transform around its local up axis
-            frontTire.localRotation = Quaternion.Euler(0, targetSteerAngle, 0);
+            var target = Quaternion.Euler(0, targetSteerAngle, 0);
+            frontTire.localRotation = Quaternion.Slerp(frontTire.localRotation, target, Time.fixedDeltaTime * 10f);
+        }
+    }
+
+    private void Aircontrol()
+    {
+        _carRigidBody.AddForce(Vector3.up * _airLiftForce, ForceMode.Impulse);
+        _carRigidBody.AddForce(Physics.gravity * _gravityModifier, ForceMode.Acceleration);
+
+        _carRigidBody.AddTorque(transform.right * _accelerationInput * _airTorque, ForceMode.Impulse);
+        _carRigidBody.AddTorque(transform.up * _steerInput * _airTorque, ForceMode.Impulse);
+    }
+
+    private void CacheWheelHits()
+    {
+        _isGrounded = false;
+
+        if (_wheelHits == null || _wheelHits.Length != _tireTransforms.Length)
+            _wheelHits = new WheelHit[_tireTransforms.Length];
+
+        for (int i = 0; i < _tireTransforms.Length; i++)
+        {
+            var tire = _tireTransforms[i];
+
+            _wheelHits[i].transform = tire;
+            _wheelHits[i].isGrounded = Physics.Raycast(tire.position, -tire.up, out _wheelHits[i].hit, _suspensionRestDist + 1f, _drivableLayer);
+
+               if (_wheelHits[i].isGrounded)
+                    _isGrounded = true;
         }
     }
 
